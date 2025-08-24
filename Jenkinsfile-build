@@ -1,0 +1,51 @@
+pipeline {
+  agent any
+
+  parameters {
+    booleanParam(name: 'RUN_DEPLOY', defaultValue: false, description: 'Run deploy job')
+  }
+
+  environment {
+    REPO = 'anestesia01/demo'
+    DOCKER_TOKEN = credentials('docker-token')
+    PRJ_NAME = 'ecommerce'
+  }
+
+  stages {
+    stage('Checkout repo') {
+      steps {
+        git branch: 'main', url: 'git@github.com:AnastasiyaGapochkina01/ecommerce-app.git'
+      }
+    }
+
+    stage('Build Image') {
+      steps {
+        script {
+          sh """
+            docker build -t "${REPO}:${PRJ_NAME}-${BUILD_NUMBER}" .
+          """
+        }
+      }
+    }
+
+    stage('Push Image') {
+      steps {
+        script {
+          sh """
+            docker login -u anestesia01 -p "${DOCKER_TOKEN}"
+            docker push "${REPO}:${PRJ_NAME}-${BUILD_NUMBER}"
+          """
+        }
+      }
+    }
+
+    stage('Call build for deploy') {
+      when {
+        expression { return params.RUN_DEPLOY }
+      }
+      steps {
+        build quietPeriod: 5, wait: false, job: 'deploy-ecommerce', parameters: [string(name: DOCKER_IMAGE, value: "${REPO}:${PRJ_NAME}-${BUILD_NUMBER}")]
+      }
+    }
+  }
+}
