@@ -1,0 +1,44 @@
+pipeline {
+  agent any
+
+  parameters {
+    string(name: DOCKER_IMAGE, description: 'Image to deploy')
+  }
+
+  environment {
+    TOKEN = credentials('telegram-token')
+    CHAT_ID = 641041957
+    LINK = "<a href=\\\"${BUILD_URL}\\\">${JOB_NAME} #${BUILD_NUMBER}</a>"
+  }
+
+  stages {
+    stage('Notify') {
+      steps {
+        script {
+          def message = """ {
+              "chat_id": "${CHAT_ID}",
+              "text": "${LINK}\n Deploy ${params.DOCKER_IMAGE} started on ecommerce",
+              "parse_mode": "HTML",
+              "disable_notification": false
+          }"""
+          sh """
+            curl -X POST -H 'Content-Type: application/json' -d '${message}' "https://api.telegram.org/bot${TOKEN}/sendMessage"
+          """
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        script {
+          sh """
+            docker pull "${params.DOCKER_IMAGE}"
+            export API_IMAGE="${params.DOCKER_IMAGE}"
+            envsubst < compose.tmpl > compose.yml
+            docker compose up -d
+          """
+        }
+      }
+    }
+  }
+}
