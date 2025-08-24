@@ -17,7 +17,7 @@ pipeline {
         script {
           def message = """ {
               "chat_id": "${CHAT_ID}",
-              "text": "${LINK}\n Deploy ${params.DOCKER_IMAGE} started on ecommerce",
+              "text": "${LINK}\n🧑‍💻 Deploy ${params.DOCKER_IMAGE} started on ecommerce",
               "parse_mode": "HTML",
               "disable_notification": false
           }"""
