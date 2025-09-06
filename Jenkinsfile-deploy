@@ -36,6 +36,7 @@ pipeline {
             export API_IMAGE="${params.DOCKER_IMAGE}"
             envsubst < compose.tmpl > compose.yml
             docker compose up -d
+            docker compose ps -a
           """
         }
       }
