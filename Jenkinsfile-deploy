@@ -44,14 +44,14 @@ pipeline {
       steps {
         script {
           def PUB_IP = sh(returnStdout: true, script: 'curl -s ip.me')
-          def final = """ {
+          def msg = """ {
               "chat_id": "${CHAT_ID}",
               "text": "Deploy ${params.DOCKER_IMAGE} finished ${PUB_IP}:8082",
               "parse_mode": "HTML",
               "disable_notification": false
           }"""
           sh """
-            curl -X POST -H 'Content-Type: application/json' -d '${message}' "https://api.telegram.org/bot${TOKEN}/sendMessage"
+            curl -X POST -H 'Content-Type: application/json' -d '${msg}' "https://api.telegram.org/bot${TOKEN}/sendMessage"
           """
         }
       }
